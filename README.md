@@ -2,6 +2,8 @@
 
 一个静态网页，点击姓名可以展开下一代。电脑和手机都可以看。
 
+**网站地址：<https://yisiangeng.github.io/huang_family_zupu/>**
+
 ## 文件
 | 文件 | 用途 | 需要改吗 |
 |---|---|---|
@@ -19,7 +21,7 @@
 1. 在 GitHub 新建一个仓库（Repository），例如 `huang-zupu`。
 2. 点 **Add file → Upload files**，把所有文件（含 `.github` 文件夹和 `data.xlsx`）拖进去，按 **Commit changes**。
 3. 进入 **Settings → Pages**，Source 选 **Deploy from a branch**，Branch 选 `main`、文件夹 `/ (root)`，按 **Save**。
-4. 等一两分钟，网址会是：`https://你的用户名.github.io/huang-zupu/`
+4. 等一两分钟，网址会是：`https://你的用户名.github.io/仓库名/`（本站：<https://yisiangeng.github.io/huang_family_zupu/>）
 
 注意：GitHub Pages 的网页是公开的，有网址的人都能看到。网页已设置不让搜索引擎收录，但这不等于私密。
 
