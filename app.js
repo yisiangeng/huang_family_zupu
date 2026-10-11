@@ -3,9 +3,10 @@
 (function () {
   "use strict";
 
-  // 打开一个人的分支时，自动收起他兄弟已展开的分支（手机上比较不会太宽）。
-  // 想同时展开多个兄弟，把 true 改成 false。
-  var ONE_BRANCH_AT_A_TIME = true;
+  // 同一代最多同时展开几个人的分支。超过时，自动收起最早展开的那个。
+  // 电脑 3 个，手机（窄屏）2 个，避免画面太宽。
+  var MAX_OPEN_PER_GENERATION = 3;
+  var MAX_OPEN_PER_GENERATION_PHONE = 2;
 
   var CN_NUM = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
 
@@ -96,12 +97,24 @@
     return li;
   }
 
+  // 每一代目前展开的人，按展开先后排列（最早的在最前）
+  var openByGen = {};
+
+  function maxOpen() {
+    var phone = window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
+    return phone ? MAX_OPEN_PER_GENERATION_PHONE : MAX_OPEN_PER_GENERATION;
+  }
+
+  function forget(li) {
+    var list = openByGen[li._gen] || [];
+    var i = list.indexOf(li);
+    if (i >= 0) list.splice(i, 1);
+  }
+
   function open(li) {
-    if (ONE_BRANCH_AT_A_TIME && li.parentNode) {
-      Array.prototype.forEach.call(li.parentNode.children, function (sib) {
-        if (sib !== li && sib._open) close(sib);
-      });
-    }
+    var list = openByGen[li._gen] = openByGen[li._gen] || [];
+    while (list.length >= maxOpen()) close(list[0]);
+    list.push(li);
     var ul = document.createElement("ul");
     li._node.kids.forEach(function (kid) { ul.appendChild(makePerson(kid, li._gen + 1)); });
     li.appendChild(ul);
@@ -112,7 +125,14 @@
 
   function close(li) {
     var ul = li.querySelector(":scope > ul");
-    if (ul) li.removeChild(ul);
+    if (ul) {
+      // 子孙的分支会一起消失，要从记录里删掉
+      Array.prototype.forEach.call(ul.querySelectorAll("li"), function (d) {
+        if (d._open) { d._open = false; forget(d); }
+      });
+      li.removeChild(ul);
+    }
+    forget(li);
     li._open = false;
     li.firstChild.setAttribute("aria-expanded", "false");
   }
@@ -136,6 +156,10 @@
       }
     });
   }
+
+  // ---------- 右下角小卡片：点 × 关闭 ----------
+  var ask = document.getElementById("ask");
+  if (ask) ask.querySelector(".ask-close").addEventListener("click", function () { ask.hidden = true; });
 
   // ---------- 启动 ----------
   var data = parse(typeof FAMILY_DATA === "string" ? FAMILY_DATA : "");

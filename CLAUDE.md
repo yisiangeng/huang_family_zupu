@@ -19,9 +19,9 @@ Open `index.html` directly in a browser. There is no lint or test command; regen
   - `parse()` skips non-numeric-ID lines (header row), warns on duplicate IDs and unknown father IDs (orphans become roots), and sorts siblings by numeric ID — **lower ID = elder brother**, so ID order determines display order.
   - Rendering is lazy: `open()` builds a child `<ul>` only when a node is clicked and `close()` removes it from the DOM. Each `<li>` carries `_node`, `_gen`, `_open` as expando properties. Generation class `g<N>` (and `deep` for N ≥ 4) is set from depth and is what `style.css` keys off.
   - Names are rendered one `<span>` per character so CSS can lay them out vertically.
-  - `ONE_BRANCH_AT_A_TIME` (top of `app.js`) auto-collapses sibling branches on open.
+  - Open branches are capped per generation (`MAX_OPEN_PER_GENERATION`, and `..._PHONE` for ≤640px) across the whole tree, not per sibling group: `openByGen[gen]` lists open nodes oldest-first and `open()` closes the oldest when full. `close()` must `forget()` every open descendant too, since removing the `<ul>` destroys them.
   - The header text (e.g. "N代 · M人") is computed from the data in `cnNumber`/`depthOf`.
-- `index.html` provides `#meta`, `#stage` (horizontally scrollable container, scrolled by `reveal()`), and `#tree`; `style.css` holds all visuals (decorative SVG hills, frame corners, vertical name tags). It sets `noindex, nofollow` so search engines skip the site (the page is still public).
+- `index.html` also holds a dismissible joke card (`#ask`, fixed bottom-right, styled by `.ask`, closed by a handler in `app.js`). It provides `#meta`, `#stage` (horizontally scrollable container, scrolled by `reveal()`), and `#tree`; `style.css` holds all visuals (decorative SVG hills, frame corners, vertical name tags). It sets `noindex, nofollow` so search engines skip the site (the page is still public).
 
 ## Notes
 

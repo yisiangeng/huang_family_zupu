@@ -38,4 +38,4 @@
 
 ## 小设置
 在 `app.js` 最上面：
-`ONE_BRANCH_AT_A_TIME = true` 表示打开一个人的分支时，会自动收起他兄弟的分支。改成 `false` 就可以同时展开多个。
+`MAX_OPEN_PER_GENERATION = 3` 表示同一代最多同时展开 3 个人的分支（电脑），`MAX_OPEN_PER_GENERATION_PHONE = 2` 是手机的数量。超过时，最早展开的那个会自动收起。数字改大，画面会变宽。
