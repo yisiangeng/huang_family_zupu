@@ -1,0 +1,258 @@
+/* 黄氏家族谱 —— 宣纸底色、水墨远山、细线族谱树 */
+:root {
+  --paper: #ebeae5;      /* 页面底色 */
+  --sheet: #f8f7f3;      /* 族谱框内 */
+  --ink: #2e2a26;        /* 文字 */
+  --muted: #8b8279;      /* 次要文字 */
+  --line: #a08b76;       /* 连线、边框 */
+  --tag: #fdfcf9;        /* 名牌底色 */
+  --tag-open: #efe8de;   /* 已展开的名牌 */
+  --seal: #a3392b;       /* 印章红 */
+  --hill: #9a9790;       /* 远山 */
+
+  --font-title: "Ma Shan Zheng", "STKaiti", "KaiTi", "楷体", serif;
+  --font-body: "Noto Serif SC", "Songti SC", "SimSun", "宋体", serif;
+
+  --gap: 26px;           /* 上下两代之间的连线长度 */
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background:
+    radial-gradient(ellipse at 15% 0%, rgba(255,255,255,.55), transparent 55%),
+    radial-gradient(ellipse at 90% 10%, rgba(255,255,255,.35), transparent 50%),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---------- 背景远山 ---------- */
+.hills {
+  position: fixed; left: 0; bottom: 0;
+  width: 100%; height: 34vh; min-height: 160px;
+  z-index: 0; pointer-events: none;
+}
+.hills path { fill: var(--hill); }
+.hills .h1 { opacity: .16; }
+.hills .h2 { opacity: .22; }
+.hills .h3 { opacity: .3; }
+
+/* ---------- 页面 ---------- */
+.page {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  padding-block: calc(28px + env(safe-area-inset-top, 0px)) calc(48px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 22px;
+}
+
+.masthead { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+.title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: 400;
+  font-size: clamp(40px, 9vw, 76px);
+  letter-spacing: .18em;
+  line-height: 1.1;
+  padding-left: .18em;            /* 抵消末字后的字距，保持居中 */
+  position: relative;
+}
+.seal {
+  position: absolute;
+  right: -0.55em; top: 0.12em;
+  width: 1.05em; height: 1.05em;
+  font-size: .38em; letter-spacing: 0;
+  display: grid; place-items: center;
+  color: var(--tag); background: var(--seal);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px var(--seal), inset 0 0 0 3px rgba(255,255,255,.55);
+  transform: rotate(-4deg);
+}
+.meta { margin: 0; color: var(--muted); font-size: 14px; letter-spacing: .2em; }
+.hint { margin: 0; color: var(--muted); font-size: 13px; letter-spacing: .08em; }
+
+/* ---------- 族谱框 ---------- */
+.frame {
+  position: relative;
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  padding: 14px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.03), 0 18px 40px -28px rgba(60,45,30,.35);
+}
+.frame::before {               /* 内框线，形成双线框 */
+  content: ""; position: absolute; inset: 6px;
+  border: 1px solid var(--line); opacity: .6;
+  pointer-events: none;
+}
+.corner {                      /* 回纹角饰 */
+  position: absolute; width: 22px; height: 22px;
+  border: 1px solid var(--line); background: var(--sheet);
+  z-index: 2;
+}
+.corner::after {
+  content: ""; position: absolute; inset: 5px;
+  border: 1px solid var(--line);
+}
+.corner.tl { top: -6px; left: -6px; }
+.corner.tr { top: -6px; right: -6px; }
+.corner.bl { bottom: -6px; left: -6px; }
+.corner.br { bottom: -6px; right: -6px; }
+
+.stage {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 28px 10px 34px;
+  min-height: 46vh;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* ---------- 族谱树（连线用 CSS 画） ---------- */
+.tree { width: max-content; min-width: 100%; }
+.tree ul {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; justify-content: center;
+  position: relative;
+}
+.tree li {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  padding: var(--gap) 7px 0;
+}
+.tree > ul > li { padding-top: 0; }
+
+/* 兄弟之间的横线 + 下到每人的竖线 */
+.tree li::before, .tree li::after {
+  content: ""; position: absolute; top: 0;
+  width: 50%; height: var(--gap);
+  border-top: 1px solid var(--line);
+}
+.tree li::before { right: 50%; }
+.tree li::after  { left: 50%; border-left: 1px solid var(--line); }
+.tree li:first-child::before, .tree li:last-child::after { border: 0; }
+.tree li:last-child::before { border-right: 1px solid var(--line); }
+.tree li:only-child::before { display: none; }
+.tree li:only-child::after { border-top: 0; }
+.tree > ul > li::before, .tree > ul > li::after { display: none; }
+
+/* 父亲往下的竖线 + 分叉处小圆点 */
+.tree li > ul { padding-top: var(--gap); }
+.tree li > ul::before {
+  content: ""; position: absolute; top: 0; left: 50%;
+  height: var(--gap); border-left: 1px solid var(--line);
+}
+.tree li > ul::after {
+  content: ""; position: absolute; left: 50%; top: var(--gap);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--line);
+  transform: translate(-50%, -50%);
+}
+
+.tree li > ul { animation: unfold .28s ease-out; }
+@keyframes unfold {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- 名牌 ---------- */
+.tag {
+  position: relative;
+  font: inherit; color: var(--ink);
+  background: var(--tag);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: .45em 1.15em;
+  font-size: 18px; letter-spacing: .12em;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 0 0 3px var(--tag), 0 0 0 4px rgba(160,139,118,.35);
+  margin: 4px;
+}
+.tag::before, .tag::after {   /* 名牌两侧的小竖条 */
+  content: ""; position: absolute; top: 28%; bottom: 28%;
+  width: 0; border-left: 2px solid var(--line); opacity: .7;
+}
+.tag::before { left: 5px; }
+.tag::after  { right: 5px; }
+
+button.tag { cursor: pointer; transition: background-color .15s, transform .15s; }
+button.tag:hover { background: var(--tag-open); }
+button.tag:active { transform: translateY(1px); }
+button.tag:focus-visible { outline: 2px solid var(--seal); outline-offset: 5px; }
+button.tag[aria-expanded="true"] { background: var(--tag-open); }
+
+.count {                       /* 儿子人数小角标 */
+  position: absolute; top: -9px; right: -9px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 9px;
+  background: var(--sheet); color: var(--line);
+  border: 1px solid var(--line);
+  font-size: 11px; line-height: 16px; letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+button.tag[aria-expanded="true"] .count { background: var(--line); color: var(--tag); }
+
+/* 各代大小 */
+.g1 > .tag { font-size: 24px; padding: .5em 1.3em; }
+.g2 > .tag { font-size: 20px; }
+.g3 > .tag { font-size: 17px; }
+
+/* 名字：默认横排；竖排时一个字一行 */
+.name { display: inline-flex; align-items: center; }
+
+/* 竖排名牌（电脑：第四代起；手机：第二代起） */
+.deep > .tag {
+  padding: .95em .5em;
+  border-radius: 14px;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+.deep > .tag .name { flex-direction: column; gap: .12em; line-height: 1.15; }
+.deep > .tag::before, .deep > .tag::after {
+  top: auto; bottom: auto; left: 30%; right: 30%;
+  width: auto; height: 0;
+  border-left: 0; border-top: 2px solid var(--line);
+}
+.deep > .tag::before { top: 5px; }
+.deep > .tag::after  { bottom: 5px; }
+
+/* ---------- 手机 ---------- */
+@media (max-width: 640px) {
+  :root { --gap: 20px; }
+  .page { gap: 16px; padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(36px + env(safe-area-inset-bottom, 0px)); }
+  .frame { padding: 10px; }
+  .stage { padding: 22px 4px 26px; min-height: 52vh; }
+  .tree li { padding-left: 3px; padding-right: 3px; }
+  .g1 > .tag { font-size: 20px; padding: .4em 1em; }
+
+  .g2 > .tag, .g3 > .tag, .deep > .tag {
+    padding: .9em .45em;
+    border-radius: 14px;
+    letter-spacing: 0;
+  }
+  .g2 > .tag { font-size: 17px; }
+  .g3 > .tag { font-size: 15px; }
+  .deep > .tag { font-size: 14px; }
+  .g2 > .tag .name, .g3 > .tag .name { flex-direction: column; gap: .12em; line-height: 1.15; }
+  .g2 > .tag::before, .g2 > .tag::after,
+  .g3 > .tag::before, .g3 > .tag::after {
+    top: auto; bottom: auto; left: 30%; right: 30%;
+    width: auto; height: 0; border-left: 0; border-top: 2px solid var(--line);
+  }
+  .g2 > .tag::before, .g3 > .tag::before { top: 5px; }
+  .g2 > .tag::after,  .g3 > .tag::after  { bottom: 5px; }
+  .count { top: -8px; right: -8px; min-width: 16px; height: 16px; line-height: 14px; font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree li > ul { animation: none; }
+  button.tag { transition: none; }
+}

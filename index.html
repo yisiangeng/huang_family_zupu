@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>黄氏家族谱</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 背景远山（装饰） -->
+  <svg class="hills" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <path class="h1" d="M0 230 C120 170 210 200 300 150 C380 110 450 160 540 130 C640 95 720 170 820 140 C930 105 1010 60 1110 120 C1200 170 1300 110 1440 150 L1440 320 L0 320 Z"/>
+    <path class="h2" d="M0 270 C140 220 260 250 380 215 C500 180 590 240 720 225 C860 208 940 170 1060 205 C1180 240 1300 200 1440 225 L1440 320 L0 320 Z"/>
+    <path class="h3" d="M0 300 C200 270 360 295 560 280 C760 265 900 290 1100 278 C1260 268 1360 285 1440 280 L1440 320 L0 320 Z"/>
+  </svg>
+
+  <main class="page">
+    <header class="masthead">
+      <h1 class="title">黄氏家族谱<span class="seal" aria-hidden="true">黄</span></h1>
+      <p class="meta" id="meta"></p>
+      <p class="hint">点击姓名，展开下一代</p>
+    </header>
+
+    <section class="frame" aria-label="族谱树">
+      <span class="corner tl" aria-hidden="true"></span>
+      <span class="corner tr" aria-hidden="true"></span>
+      <span class="corner bl" aria-hidden="true"></span>
+      <span class="corner br" aria-hidden="true"></span>
+      <div class="stage" id="stage">
+        <div class="tree" id="tree"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
