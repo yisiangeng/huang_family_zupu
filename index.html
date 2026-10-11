@@ -30,18 +30,23 @@
       <span class="corner tr" aria-hidden="true"></span>
       <span class="corner bl" aria-hidden="true"></span>
       <span class="corner br" aria-hidden="true"></span>
+      <div class="zoombar" role="group" aria-label="缩放">
+        <button type="button" id="zoom-out" aria-label="缩小">−</button>
+        <button type="button" id="zoom-reset" aria-label="恢复 100%">100%</button>
+        <button type="button" id="zoom-in" aria-label="放大">+</button>
+        <button type="button" id="zoom-fit">适应</button>
+      </div>
       <div class="stage" id="stage">
         <div class="tree" id="tree"></div>
       </div>
     </section>
   </main>
 
-  <aside class="ask" id="ask" aria-label="十万个为什么">
-    <button class="ask-close" type="button" aria-label="关闭">×</button>
+  <div class="ask" id="ask" role="button" tabindex="0" aria-label="十万个为什么：为什么没有女生？点一下收起">
     <p class="ask-label">十万个为什么</p>
     <p class="ask-q">为什么没有女生？</p>
     <p class="ask-note">（悄悄说：不是不欢迎她们，是老祖宗的规矩太老了。）</p>
-  </aside>
+  </div>
 
   <script src="data.js"></script>
   <script src="app.js"></script>

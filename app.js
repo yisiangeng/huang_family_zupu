@@ -157,9 +157,49 @@
     });
   }
 
-  // ---------- 右下角小卡片：点 × 关闭 ----------
+  // ---------- 右下角小卡片：点一下收起 ----------
   var ask = document.getElementById("ask");
-  if (ask) ask.querySelector(".ask-close").addEventListener("click", function () { ask.hidden = true; });
+  if (ask) {
+    var hideAsk = function () { ask.hidden = true; };
+    ask.addEventListener("click", hideAsk);
+    ask.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); hideAsk(); }
+    });
+  }
+
+  // ---------- 缩放：看整棵树 ----------
+  var ZOOM_MIN = 0.25, ZOOM_MAX = 1.5, ZOOM_STEP = 1.25;
+  var zoom = 1;
+
+  function setZoom(z) {
+    var stage = document.getElementById("stage");
+    var tree = document.getElementById("tree");
+    z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+    // 缩放前后保持画面中心不变
+    var center = (stage.scrollLeft + stage.clientWidth / 2) / (stage.scrollWidth || 1);
+    zoom = z;
+    tree.style.zoom = z;
+    stage.scrollLeft = center * stage.scrollWidth - stage.clientWidth / 2;
+    document.getElementById("zoom-reset").textContent = Math.round(z * 100) + "%";
+  }
+
+  // 刚好把整棵树的宽度放进画面（不放大，只缩小）
+  function fitZoom() {
+    var stage = document.getElementById("stage");
+    var tree = document.getElementById("tree");
+    tree.style.zoom = 1;
+    var width = 0;
+    Array.prototype.forEach.call(tree.firstChild.children, function (li) { width += li.offsetWidth; });
+    var cs = getComputedStyle(stage);
+    var room = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    setZoom(Math.min(1, room / (width || 1)));
+    stage.scrollLeft = 0;
+  }
+
+  document.getElementById("zoom-out").addEventListener("click", function () { setZoom(zoom / ZOOM_STEP); });
+  document.getElementById("zoom-in").addEventListener("click", function () { setZoom(zoom * ZOOM_STEP); });
+  document.getElementById("zoom-reset").addEventListener("click", function () { setZoom(1); });
+  document.getElementById("zoom-fit").addEventListener("click", fitZoom);
 
   // ---------- 启动 ----------
   var data = parse(typeof FAMILY_DATA === "string" ? FAMILY_DATA : "");

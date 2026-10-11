@@ -21,7 +21,8 @@ Open `index.html` directly in a browser. There is no lint or test command; regen
   - Names are rendered one `<span>` per character so CSS can lay them out vertically.
   - Open branches are capped per generation (`MAX_OPEN_PER_GENERATION`, and `..._PHONE` for ≤640px) across the whole tree, not per sibling group: `openByGen[gen]` lists open nodes oldest-first and `open()` closes the oldest when full. `close()` must `forget()` every open descendant too, since removing the `<ul>` destroys them.
   - The header text (e.g. "N代 · M人") is computed from the data in `cnNumber`/`depthOf`.
-- `index.html` also holds a dismissible joke card (`#ask`, fixed bottom-right, styled by `.ask`, closed by a handler in `app.js`). It provides `#meta`, `#stage` (horizontally scrollable container, scrolled by `reveal()`), and `#tree`; `style.css` holds all visuals (decorative SVG hills, frame corners, vertical name tags). It sets `noindex, nofollow` so search engines skip the site (the page is still public).
+- Zoom (`#zoom-*` buttons in `.zoombar`, logic in `app.js` `setZoom`/`fitZoom`) uses the CSS `zoom` property on `#tree`; "适应" measures the tree at zoom 1 and scales it to fit `#stage`. The `.stage` top padding leaves room for the bar.
+- `index.html` also holds a joke card (`#ask`, fixed bottom-right, styled like a name tag, tap/Enter hides it). It provides `#meta`, `#stage` (horizontally scrollable container, scrolled by `reveal()`), and `#tree`; `style.css` holds all visuals (decorative SVG hills, frame corners, vertical name tags). It sets `noindex, nofollow` so search engines skip the site (the page is still public).
 
 ## Notes
 

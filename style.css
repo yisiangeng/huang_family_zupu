@@ -108,12 +108,31 @@ body {
   position: relative;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 28px 10px 34px;
+  padding: 60px 10px 34px;          /* 上方留出缩放按钮的位置 */
   min-height: 46vh;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
+
+/* ---------- 缩放按钮 ---------- */
+.zoombar {
+  position: absolute; z-index: 3;
+  top: 16px; right: 16px;
+  display: flex; gap: 6px;
+}
+.zoombar button {
+  font: inherit; font-size: 14px; line-height: 1;
+  min-width: 34px; height: 30px; padding: 0 .6em;
+  color: var(--ink); background: var(--tag);
+  border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--tag), 0 0 0 3px rgba(160,139,118,.3);
+  margin: 3px; cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.zoombar button:hover { background: var(--tag-open); }
+.zoombar button:active { transform: translateY(1px); }
+.zoombar button:focus-visible { outline: 2px solid var(--seal); outline-offset: 3px; }
 
 /* ---------- 族谱树（连线用 CSS 画） ---------- */
 .tree { width: max-content; min-width: 100%; }
@@ -229,7 +248,7 @@ button.tag[aria-expanded="true"] .count { background: var(--line); color: var(--
   :root { --gap: 20px; }
   .page { gap: 16px; padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(36px + env(safe-area-inset-bottom, 0px)); }
   .frame { padding: 10px; }
-  .stage { padding: 22px 4px 26px; min-height: 52vh; }
+  .stage { padding: 48px 4px 26px; min-height: 52vh; }
   .tree li { padding-left: 3px; padding-right: 3px; }
   .g1 > .tag { font-size: 20px; padding: .4em 1em; }
 
@@ -249,47 +268,36 @@ button.tag[aria-expanded="true"] .count { background: var(--line); color: var(--
   }
   .g2 > .tag::before, .g3 > .tag::before { top: 5px; }
   .g2 > .tag::after,  .g3 > .tag::after  { bottom: 5px; }
+  .zoombar { top: 10px; right: 10px; gap: 2px; }
+  .zoombar button { min-width: 30px; height: 28px; font-size: 13px; }
   .count { top: -8px; right: -8px; min-width: 16px; height: 16px; line-height: 14px; font-size: 10px; }
 }
 
-/* ---------- 右下角小卡片 ---------- */
+/* ---------- 右下角小卡片（样式同名牌，点一下收起） ---------- */
 .ask {
   position: fixed; z-index: 10;
-  right: max(14px, env(safe-area-inset-right, 0px));
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  width: 210px;
-  padding: 14px 16px 12px;
-  background: var(--sheet);
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  width: 200px;
+  padding: .7em 1.1em;
+  background: var(--tag);
   border: 1px solid var(--line);
-  box-shadow: 0 0 0 4px var(--sheet), 0 0 0 5px rgba(160,139,118,.4), 0 14px 30px -14px rgba(60,45,30,.45);
-  transform: rotate(1.5deg);
+  border-radius: 9px;
+  box-shadow: 0 0 0 3px var(--tag), 0 0 0 4px rgba(160,139,118,.35);
+  text-align: center;
+  cursor: pointer;
   animation: ask-in .5s 1.2s ease-out both;
 }
 .ask[hidden] { display: none; }
-.ask-label {
-  margin: 0 0 4px;
-  font-family: var(--font-title);
-  font-size: 15px; letter-spacing: .12em;
-  color: var(--seal);
-}
-.ask-q { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: .06em; line-height: 1.4; }
-.ask-note { margin: 6px 0 0; font-size: 12px; color: var(--muted); letter-spacing: .04em; line-height: 1.6; }
-.ask-close {
-  position: absolute; top: 2px; right: 4px;
-  width: 28px; height: 28px;
-  font: inherit; font-size: 18px; line-height: 1;
-  color: var(--muted); background: none; border: 0; cursor: pointer;
-}
-.ask-close:hover { color: var(--seal); }
-.ask-close:focus-visible { outline: 2px solid var(--seal); outline-offset: -2px; }
-@keyframes ask-in {
-  from { opacity: 0; transform: translateY(10px) rotate(1.5deg); }
-  to   { opacity: 1; transform: rotate(1.5deg); }
-}
+.ask:focus-visible { outline: 2px solid var(--seal); outline-offset: 5px; }
+.ask-label { margin: 0 0 2px; font-size: 12px; letter-spacing: .15em; color: var(--muted); }
+.ask-q { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: .08em; line-height: 1.4; }
+.ask-note { margin: 5px 0 0; font-size: 12px; color: var(--muted); letter-spacing: .04em; line-height: 1.6; }
+@keyframes ask-in  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 640px) {
-  .ask { width: 170px; padding: 11px 13px 9px; }
-  .ask-q { font-size: 15px; }
+  .ask { width: 168px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .ask-q { font-size: 14px; }
   .ask-note { font-size: 11px; }
 }
 
