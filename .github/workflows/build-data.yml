@@ -1,0 +1,34 @@
+name: 从 Excel 更新族谱
+
+# 上传（或修改）data.xlsx 后，自动重新生成 data.js 并提交。
+on:
+  push:
+    branches: [main]
+    paths: [data.xlsx]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install openpyxl
+      - name: 生成 data.js（Excel 有错误时这一步会失败并列出问题）
+        run: python build_data.py
+      - name: 提交 data.js
+        run: |
+          if git diff --quiet -- data.js; then
+            echo "data.js 没有变化"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.js
+          git commit -m "从 data.xlsx 更新 data.js"
+          git push

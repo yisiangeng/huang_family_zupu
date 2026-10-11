@@ -8,24 +8,31 @@
 | `index.html` | 网页结构、标题 | 改标题时才需要 |
 | `style.css` | 外观（颜色、字体、大小） | 一般不用 |
 | `app.js` | 展开/收起的功能 | 一般不用 |
-| `data.js` | **族谱名单** | 更新族谱时改这个 |
+| `data.xlsx` | **族谱名单（Excel）** | 更新族谱时只改这个 |
+| `data.js` | 网站读取的名单，由 Excel 自动生成 | 不要手动改 |
+| `build_data.py`、`.github/workflows/` | 把 Excel 转成 `data.js` 的程序 | 不用改 |
 
 ## 本地预览
 双击 `index.html`，用浏览器打开即可。
 
 ## 上传到 GitHub Pages
 1. 在 GitHub 新建一个仓库（Repository），例如 `huang-zupu`。
-2. 点 **Add file → Upload files**，把这 5 个文件拖进去，按 **Commit changes**。
+2. 点 **Add file → Upload files**，把所有文件（含 `.github` 文件夹和 `data.xlsx`）拖进去，按 **Commit changes**。
 3. 进入 **Settings → Pages**，Source 选 **Deploy from a branch**，Branch 选 `main`、文件夹 `/ (root)`，按 **Save**。
 4. 等一两分钟，网址会是：`https://你的用户名.github.io/huang-zupu/`
 
 注意：GitHub Pages 的网页是公开的，有网址的人都能看到。网页已设置不让搜索引擎收录，但这不等于私密。
 
 ## 更新族谱
-1. 在 Excel《黄氏族谱》的「族谱」表里新增或修改人员。
-2. 选中 A 到 C 列（编号、姓名、父亲编号）所有有资料的行，复制。
-3. 打开 `data.js`，把内容粘贴到两个 ` 符号之间，取代旧名单。
-4. 在 GitHub 上传新的 `data.js`（覆盖旧的），网站一两分钟后自动更新。
+只需要改 Excel：
+1. 在 `data.xlsx` 的「族谱」表里新增或修改人员（只填 A 到 C 列：编号、姓名、父亲编号）。
+2. 在 GitHub 仓库页面点 **Add file → Upload files**，上传新的 `data.xlsx`（覆盖旧的），按 **Commit changes**。
+3. GitHub 会自动运行「从 Excel 更新族谱」，重新生成 `data.js`，一两分钟后网站更新。
+4. 如果 Excel 有错误（编号重复、父亲编号不存在、有两位始祖等），仓库的 **Actions** 页面会显示红色 ✗ 并列出问题，网站保持旧内容；修正 Excel 再上传即可。
+
+也可以在电脑上直接生成：`pip install openpyxl`，然后运行 `python build_data.py`，再预览或上传。
+
+注意：`data.xlsx` 会和网站一起公开。只有 A 到 C 列会进入网站，但「备注」等其他列在 GitHub 上也是看得到的，不想公开的资料不要写在里面。
 
 ## 小设置
 在 `app.js` 最上面：
