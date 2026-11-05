@@ -20,6 +20,7 @@
 * { box-sizing: border-box; }
 
 html, body { margin: 0; min-height: 100%; }
+body { position: relative; min-height: 100vh; }   /* 让左下角的 GitHub 链接贴着页面最底部 */
 
 body {
   background:
@@ -273,37 +274,63 @@ button.tag[aria-expanded="true"] .count { background: var(--line); color: var(--
   .count { top: -8px; right: -8px; min-width: 16px; height: 16px; line-height: 14px; font-size: 10px; }
 }
 
-/* ---------- 右下角「添加新成员」链接（样式同名牌） ---------- */
+/* ---------- 右上角链接框（跟着页面一起滚动；样式同名牌）：添加新成员 / 提出修改 ---------- */
 .addbox {
-  position: fixed; z-index: 10;
+  position: absolute; z-index: 10;
   right: max(16px, env(safe-area-inset-right, 0px));
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  width: 188px;
-  padding: .65em 1.1em .6em;
-  color: var(--ink); text-decoration: none; text-align: center;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  display: flex; flex-direction: column;
+  width: 176px;
   background: var(--tag);
   border: 1px solid var(--line);
   border-radius: 9px;
   box-shadow: 0 0 0 3px var(--tag), 0 0 0 4px rgba(160,139,118,.35);
-  transition: background-color .15s, transform .15s;
+  overflow: hidden;
 }
-.addbox:hover { background: var(--tag-open); }
-.addbox:active { transform: translateY(1px); }
-.addbox:focus-visible { outline: 2px solid var(--seal); outline-offset: 5px; }
-.addbox-label { font-size: 12px; letter-spacing: .15em; color: var(--muted); }
+.addbox-link {
+  display: block;
+  padding: .6em 1.1em;
+  color: var(--ink); text-decoration: none; text-align: center;
+  transition: background-color .15s;
+}
+.addbox-link:hover { background: var(--tag-open); }
+.addbox-link:focus-visible { outline: 2px solid var(--seal); outline-offset: -3px; }
 .addbox-main { font-size: 16px; font-weight: 600; letter-spacing: .08em; line-height: 1.4; }
-.addbox-arrow { margin-left: .25em; font-size: 13px; color: var(--seal); }
-.addbox-note { font-size: 11px; letter-spacing: .04em; color: var(--muted); }
+.addbox-sub {
+  padding: .5em 1.1em;
+  font-size: 12px; letter-spacing: .06em; color: var(--muted);
+  border-top: 1px solid rgba(160,139,118,.4);
+}
+.addbox-arrow { margin-left: .25em; font-size: .85em; color: var(--seal); }
+
+/* 窄屏：给标题上方留出右上角小盒子的位置，避免一开始就盖住标题 */
+@media (max-width: 960px) {
+  .masthead { padding-top: 84px; }
+}
 
 @media (max-width: 640px) {
-  .addbox { width: 150px; padding: .5em .8em .45em; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
-  .addbox-main { font-size: 14px; }
-  .addbox-note { display: none; }
+  .addbox { width: 156px; right: 12px; top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .addbox-main { font-size: 14px; padding: .5em .8em; }
+  .addbox-sub { font-size: 11px; padding: .45em .8em; }
 }
 
+/* ---------- 左下角：淡淡的 GitHub 链接（只有带下划线的文字，跟着页面一起滚动，鼠标移上去更清楚） ---------- */
+.repo {
+  position: absolute; z-index: 10;
+  left: max(10px, env(safe-area-inset-left, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: .1em .3em;
+  font-size: 11px; letter-spacing: .06em; line-height: 1.5;
+  color: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px;   /* 一直有下划线，看起来像链接 */
+  opacity: .5;
+  transition: opacity .2s;
+}
+.repo:hover, .repo:focus-visible { opacity: .9; }
+.repo:focus-visible { outline: 2px solid var(--seal); outline-offset: 2px; }
+
 @media (prefers-reduced-motion: reduce) {
-  .addbox { transition: none; }
+  .addbox-link, .repo { transition: none; }
   .tree li > ul { animation: none; }
   button.tag { transition: none; }
 }
