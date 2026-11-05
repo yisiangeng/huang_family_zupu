@@ -2,13 +2,14 @@ name: 更新族谱
 
 # 每月 1 号自动从 Google 表格（sheet_url.txt 里的链接）更新；
 # 也可以在 Actions 页面点 "Run workflow" 立即更新；
-# 修改 sheet_url.txt 或 data.xlsx 时也会运行。
+# 修改 sheet_url.txt 时也会运行。
+# 名单有变化时，data.js 和 族谱备份.xlsx 会一起更新。
 on:
   schedule:
     - cron: "0 2 1 * *"
   push:
     branches: [main]
-    paths: [sheet_url.txt, data.xlsx]
+    paths: [sheet_url.txt]
   workflow_dispatch:
 
 permissions:
@@ -29,7 +30,7 @@ jobs:
         run: |
           # .last_sync 每月更新一次：仓库超过 60 天没有任何提交时，GitHub 会停用定时任务
           date -u +%F > .last_sync
-          git add data.js .last_sync
+          git add data.js 族谱备份.xlsx .last_sync
           if git diff --cached --quiet; then
             echo "没有变化"
             exit 0

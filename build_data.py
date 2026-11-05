@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""从族谱表格生成 data.js。
+"""从族谱表格生成 data.js 和 族谱备份.xlsx。
 
 用法：python build_data.py [来源] [输出路径]
 来源可以是：
   - Google 表格「发布到网络」的 CSV 链接（http 开头）
   - 本地的 .csv 文件
-  - 本地的 .xlsx 文件（需要「族谱」工作表）
-不写来源时：如果 sheet_url.txt 里有链接就用链接，否则用 data.xlsx。
-只读取 A 到 C 列（编号、姓名、父亲编号），第一行是标题；其他列不会进入网站。
-数据有错误时会列出所有问题并退出（退出码 1），不会覆盖 data.js。
+不写来源时，使用 sheet_url.txt 里的链接。
+只读取 A 到 C 列（编号、姓名、父亲编号）生成 data.js，第一行是标题；其他列不会进入网站。
+名单有变化时，会同时把整个「族谱」工作表存成 族谱备份.xlsx（只读备份，每次都会被覆盖），放在 data.js 旁边。
+数据有错误时会列出所有问题并退出（退出码 1），不会覆盖任何文件。
+需要：pip install openpyxl（只用来写备份）
 """
 import csv
 import io
@@ -20,6 +21,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else HERE / "data.js"
 SHEET = "族谱"
+BACKUP_NAME = "族谱备份.xlsx"
 
 HEADER = """\
 // 黄氏族谱数据 —— 由 build_data.py 从族谱表格自动生成，请不要手动修改。
@@ -37,28 +39,27 @@ def default_source():
             line = line.strip()
             if line.startswith("http"):
                 return line
-    return str(HERE / "data.xlsx")
+    sys.exit("错误：sheet_url.txt 里没有 Google 表格的 CSV 链接（发布到网络后得到的链接）")
 
 
 def load_rows(source):
-    """返回 (来源名称, 行列表)。每行是 (编号, 姓名, 父亲编号)，不含标题行（第一行数据对应表格第 2 行）。"""
+    """返回 (来源名称, 行列表, 完整表格)。行是 (编号, 姓名, 父亲编号)，不含标题行（第一行数据对应表格第 2 行）；
+    完整表格包含标题行和所有列，用来写备份。"""
     if source.startswith("http"):
         req = urllib.request.Request(source, headers={"User-Agent": "huang-zupu-build"})
         with urllib.request.urlopen(req, timeout=30) as resp:
             text = resp.read().decode("utf-8-sig")
         if text.lstrip().lower().startswith("<"):
             sys.exit("错误：下载到的不是 CSV。请确认 Google 表格已「发布到网络」，并选择「族谱」工作表和 CSV 格式。")
-        return "Google 表格", rows_from_csv(text)
-    path = Path(source)
-    if not path.exists():
-        sys.exit(f"错误：找不到 {path}")
-    if path.suffix.lower() == ".csv":
-        return path.name, rows_from_csv(path.read_text(encoding="utf-8-sig"))
-    import openpyxl  # 只有读 Excel 时才需要
-    wb = openpyxl.load_workbook(path, data_only=True)
-    if SHEET not in wb.sheetnames:
-        sys.exit(f"错误：{path.name} 里找不到名为「{SHEET}」的工作表")
-    return path.name, list(wb[SHEET].iter_rows(min_row=2, max_col=3, values_only=True))
+        label = "Google 表格"
+    else:
+        path = Path(source)
+        if path.suffix.lower() != ".csv" or not path.exists():
+            sys.exit(f"错误：来源必须是 CSV 链接或存在的 .csv 文件：{source}")
+        text = path.read_text(encoding="utf-8-sig")
+        label = path.name
+    table = list(csv.reader(io.StringIO(text)))
+    return label, rows_from_csv(text), table
 
 
 def rows_from_csv(text):
@@ -69,6 +70,30 @@ def rows_from_csv(text):
         r = (r + ["", "", ""])[:3]
         rows.append(tuple(c.strip() or None for c in r))
     return rows
+
+
+def write_backup(path, table):
+    """把完整的「族谱」表存成 xlsx（只读备份）。"""
+    import openpyxl
+    from openpyxl.styles import Alignment, Font, PatternFill
+
+    while table and not any(c.strip() for c in table[-1]):
+        table = table[:-1]            # 去掉末尾的空行
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = SHEET
+    for r, row in enumerate(table, start=1):
+        for c, value in enumerate(row, start=1):
+            value = value.strip()
+            cell = ws.cell(row=r, column=c, value=int(value) if re.fullmatch(r"\d+", value) else (value or None))
+            cell.alignment = Alignment(horizontal="center" if c != 6 else "left")
+            if r == 1:
+                cell.font = Font(bold=True, color="FFFFFF")
+                cell.fill = PatternFill("solid", fgColor="7A6A58")
+    for col, width in zip("ABCDEF", (8, 12, 11, 12, 9, 30)):
+        ws.column_dimensions[col].width = width
+    ws.freeze_panes = "A2"
+    wb.save(path)
 
 
 def as_id(value, where, errors):
@@ -138,7 +163,7 @@ def validate(people, errors):
 
 def main():
     source = sys.argv[1] if len(sys.argv) > 1 else default_source()
-    label, rows = load_rows(source)
+    label, rows, table = load_rows(source)
     people, errors = read_people(rows)
     validate(people, errors)
     if errors:
@@ -149,11 +174,16 @@ def main():
 
     lines = ["编号\t姓名\t父亲编号"] + [f"{pid}\t{name}\t{parent}" for _, pid, name, parent in people]
     content = HEADER + "\n".join(lines) + "\n`;\n"
-    if OUT.exists() and OUT.read_text(encoding="utf-8") == content:
+    backup = OUT.with_name(BACKUP_NAME)
+    changed = not (OUT.exists() and OUT.read_text(encoding="utf-8") == content)
+    if changed:
+        OUT.write_text(content, encoding="utf-8", newline="\n")
+        print(f"已生成 {OUT.name}：{len(people)} 人（来源：{label}）")
+    else:
         print(f"{OUT.name} 已是最新（{len(people)} 人，来源：{label}），无需更改")
-        return
-    OUT.write_text(content, encoding="utf-8", newline="\n")
-    print(f"已生成 {OUT.name}：{len(people)} 人（来源：{label}）")
+    if changed or not backup.exists():
+        write_backup(backup, table)
+        print(f"已生成 {backup.name}")
 
 
 if __name__ == "__main__":

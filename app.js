@@ -157,16 +157,6 @@
     });
   }
 
-  // ---------- 右下角小卡片：点一下收起 ----------
-  var ask = document.getElementById("ask");
-  if (ask) {
-    var hideAsk = function () { ask.hidden = true; };
-    ask.addEventListener("click", hideAsk);
-    ask.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); hideAsk(); }
-    });
-  }
-
   // ---------- 缩放：看整棵树 ----------
   var ZOOM_MIN = 0.25, ZOOM_MAX = 1.5, ZOOM_STEP = 1.25;
   var zoom = 1;

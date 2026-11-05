@@ -1,7 +1,9 @@
 // 黄氏族谱（Google 表格脚本）
-// 作用：有人在「新加入成员」表填好 姓名 和 父亲编号 后，自动检查，通过的就移到「族谱」表最后，
-//       并按「目前最大编号 + 1」自动分配编号。有问题的行会留在原处，并在 D 列写明原因。
-// 安装方法见 README.md 的「Google 表格设置」。这个文件的内容整段复制到 扩展程序 → Apps Script。
+// 作用：每天自动运行一次，把「新加入成员」表里填好 姓名 和 父亲编号 的人检查一遍，
+//       通过的就移到「族谱」表最后，并按「目前最大编号 + 1」自动分配编号；
+//       有问题的行会留在原处，并在 D 列写明原因。
+//       填表的人只管填，不会马上看到变化；想马上处理，拥有者可以用菜单「族谱工具 → 处理新加入成员」。
+// 安装方法见 README.md 的「一次性设置」。这个文件的内容整段复制到 扩展程序 → Apps Script。
 //
 // 「新加入成员」表的格式：
 //   第 1 行是标题；A 列 = 姓名；B 列 = 父亲编号；C 列 = 父亲姓名（公式，给填表人核对用）；D 列 = 处理结果（脚本写入）。
@@ -9,13 +11,15 @@
 
 var SRC_SHEET = "新加入成员";
 var DST_SHEET = "族谱";
+var RUN_HOUR = 3;   // 每天几点运行（0–23，按脚本所在的时区；Google 会在这一小时内的某个时间运行）
 
-// 只需运行一次：建立「有人编辑就自动处理」的触发器，并授权。
+// 只需运行一次：建立「每天运行一次」的触发器，并授权。
+// 以后改了 RUN_HOUR，或旧版本留下了「有人编辑就运行」的触发器，重新运行一次 setup() 即可。
 function setup() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
     if (t.getHandlerFunction() === "moveNewMembers") ScriptApp.deleteTrigger(t);
   });
-  ScriptApp.newTrigger("moveNewMembers").forSpreadsheet(SpreadsheetApp.getActive()).onEdit().create();
+  ScriptApp.newTrigger("moveNewMembers").timeBased().everyDays(1).atHour(RUN_HOUR).create();
   moveNewMembers();
 }
 
@@ -24,12 +28,9 @@ function onOpen() {
   SpreadsheetApp.getUi().createMenu("族谱工具").addItem("处理新加入成员", "moveNewMembers").addToUi();
 }
 
-function moveNewMembers(e) {
-  // 被编辑触发时，只处理「新加入成员」表里的编辑
-  if (e && e.range && e.range.getSheet().getName() !== SRC_SHEET) return;
-
+function moveNewMembers() {
   var lock = LockService.getScriptLock();
-  if (!lock.tryLock(20000)) return;   // 同时有人在改时，排队
+  if (!lock.tryLock(20000)) return;   // 同时有别的处理在运行时，不重复处理
   try {
     process_();
   } finally {
@@ -101,7 +102,7 @@ function process_() {
       src.getRange(rowNo, 1, 1, 2).clearContent();
       src.getRange(rowNo, 4).clearContent();
     });
-    ss.toast("已把 " + toAdd.length + " 人加入「族谱」：" + names.join("、"), "族谱", 8);
+    try { ss.toast("已把 " + toAdd.length + " 人加入「族谱」：" + names.join("、"), "族谱", 8); } catch (err) {}
   }
   messages.forEach(function (m) { src.getRange(m[0], 4).setValue(m[1]); });
 }
