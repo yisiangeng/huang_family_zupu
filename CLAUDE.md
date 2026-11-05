@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-黄氏家族谱: a static, dependency-free family-tree website (plain HTML/CSS/JS front end, no package manager, no tests; `data.js` is generated from `data.xlsx`). Clicking a name expands the next generation. Deployed via GitHub Pages from `main` / root. UI text and comments are in Simplified Chinese; keep new user-facing text and comments consistent with that. The README (`README.md`) is written for a non-technical maintainer, so keep the update workflow simple.
+黄氏家族谱: a static, dependency-free family-tree website (plain HTML/CSS/JS front end, no package manager, no tests; `data.js` is generated from a Google Sheet). Clicking a name expands the next generation. Deployed via GitHub Pages from `main` / root. UI text and comments are in Simplified Chinese; keep new user-facing text and comments consistent with that. The README (`README.md`) is written for a non-technical maintainer, so keep the update workflow simple.
 
 ## Running
 
@@ -12,8 +12,9 @@ Open `index.html` directly in a browser. There is no lint or test command; regen
 
 ## Architecture
 
-- `data.xlsx` (sheet 「族谱」, columns A–C: 编号, 姓名, 父亲编号) is the **single source of truth** edited by the maintainer. `build_data.py` (needs `openpyxl`) validates it (duplicate IDs, missing father, cycles, exactly one root, bad names) and regenerates `data.js`; on any error it prints all problems and exits 1 without touching `data.js`. Run it with `python build_data.py [xlsx] [out]`. Other sheet columns (formulas in D–F, 备注) are never exported.
-- `.github/workflows/build-data.yml` runs `build_data.py` on pushes to `main` that touch `data.xlsx`, then commits `data.js` as a bot, which triggers the Pages redeploy. **Never hand-edit `data.js`** — it is overwritten.
+- The source of truth is a **Google Sheet** with tabs 族谱 (full list, locked), 新加入成员 (public intake: 姓名 + 父亲编号) and 说明. Its 族谱 tab is "published to the web" as CSV; that URL lives in `sheet_url.txt` (lines starting with `#` are ignored). `google_sheet/Code.gs` is the Apps Script to paste into the sheet: an installable onEdit trigger validates intake rows, assigns IDs (max+1), appends them to 族谱 and clears them from the intake tab. `google_sheet/说明.txt` is the text for the 说明 tab. `data.xlsx` already has all three tabs (族谱 with formula rows to 500, 新加入成员 with per-row C-column father-name formulas to row 300, 说明), so uploading it to Drive seeds the sheet; keep `说明.txt` and the 说明 tab in sync. The sheet itself isn't in the repo; Claude can't create it or install the script.
+- `build_data.py` reads a CSV URL, a local `.csv`, or a `.xlsx` (sheet 「族谱」); with no argument it uses the URL in `sheet_url.txt`, else `data.xlsx` (legacy fallback). It reads columns A–C only (row 1 = header), validates (duplicate IDs, missing father, cycles, exactly one root, bad names) and regenerates `data.js`; on any error it prints all problems and exits 1 without touching `data.js`. `python build_data.py [source] [out]`; `openpyxl` is only needed for xlsx.
+- `.github/workflows/build-data.yml` runs `build_data.py` monthly (cron, 1st at 02:00 UTC), on manual dispatch, and on pushes touching `sheet_url.txt`/`data.xlsx`, then commits `data.js` and `.last_sync` as a bot. `.last_sync` is a keepalive: GitHub disables scheduled workflows after 60 days without repo commits. **Never hand-edit `data.js`** — it is overwritten.
 - `data.js` defines a single global `FAMILY_DATA` template-literal string: one person per line as tab-separated `编号 姓名 父亲编号`; the ancestor (始祖) has an empty father ID.
 - `app.js` (IIFE, loaded after `data.js`) parses that string into a tree and renders it:
   - `parse()` skips non-numeric-ID lines (header row), warns on duplicate IDs and unknown father IDs (orphans become roots), and sorts siblings by numeric ID — **lower ID = elder brother**, so ID order determines display order.
@@ -26,6 +27,6 @@ Open `index.html` directly in a browser. There is no lint or test command; regen
 
 ## Notes
 
-- Updating the genealogy means only editing `data.xlsx`; the front-end code should not need changes. The site itself never reads the xlsx, only the generated `data.js`.
-- `data.xlsx` is committed to the public repo, so its notes column is publicly visible.
+- Updating the genealogy means only editing the Google Sheet; the front-end code should not need changes. The site itself never reads the sheet, only the generated `data.js`.
+- `data.xlsx` is committed to the public repo, so its notes column is publicly visible; the published sheet CSV is public too, so keep private notes out of the published tab.
 - On Windows run Python with `-X utf8` (default console encoding is cp1252).

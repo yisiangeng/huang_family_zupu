@@ -1,10 +1,14 @@
-name: 从 Excel 更新族谱
+name: 更新族谱
 
-# 上传（或修改）data.xlsx 后，自动重新生成 data.js 并提交。
+# 每月 1 号自动从 Google 表格（sheet_url.txt 里的链接）更新；
+# 也可以在 Actions 页面点 "Run workflow" 立即更新；
+# 修改 sheet_url.txt 或 data.xlsx 时也会运行。
 on:
+  schedule:
+    - cron: "0 2 1 * *"
   push:
     branches: [main]
-    paths: [data.xlsx]
+    paths: [sheet_url.txt, data.xlsx]
   workflow_dispatch:
 
 permissions:
@@ -19,16 +23,18 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install openpyxl
-      - name: 生成 data.js（Excel 有错误时这一步会失败并列出问题）
+      - name: 生成 data.js（表格有错误时这一步会失败并列出问题）
         run: python build_data.py
-      - name: 提交 data.js
+      - name: 提交
         run: |
-          if git diff --quiet -- data.js; then
-            echo "data.js 没有变化"
+          # .last_sync 每月更新一次：仓库超过 60 天没有任何提交时，GitHub 会停用定时任务
+          date -u +%F > .last_sync
+          git add data.js .last_sync
+          if git diff --cached --quiet; then
+            echo "没有变化"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data.js
-          git commit -m "从 data.xlsx 更新 data.js"
+          git commit -m "更新族谱（$(date -u +%F)）"
           git push

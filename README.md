@@ -10,31 +10,47 @@
 | `index.html` | 网页结构、标题 | 改标题时才需要 |
 | `style.css` | 外观（颜色、字体、大小） | 一般不用 |
 | `app.js` | 展开/收起的功能 | 一般不用 |
-| `data.xlsx` | **族谱名单（Excel）** | 更新族谱时只改这个 |
-| `data.js` | 网站读取的名单，由 Excel 自动生成 | 不要手动改 |
-| `build_data.py`、`.github/workflows/` | 把 Excel 转成 `data.js` 的程序 | 不用改 |
+| Google 表格 | **族谱名单**（三个工作表：族谱、新加入成员、说明） | 更新族谱时只改这个 |
+| `sheet_url.txt` | 存放 Google 表格的 CSV 链接 | 设置一次即可 |
+| `data.xlsx` | 旧的 Excel 名单（还没设置 Google 表格时才使用） | 设置好 Google 表格后不用了 |
+| `data.js` | 网站读取的名单，自动生成 | 不要手动改 |
+| `build_data.py`、`.github/workflows/` | 把表格转成 `data.js` 的程序和定时任务 | 不用改 |
+| `google_sheet/` | Google 表格里要用的脚本和说明文字 | 设置一次即可 |
 
 ## 本地预览
 双击 `index.html`，用浏览器打开即可。
 
 ## 上传到 GitHub Pages
 1. 在 GitHub 新建一个仓库（Repository），例如 `huang-zupu`。
-2. 点 **Add file → Upload files**，把所有文件（含 `.github` 文件夹和 `data.xlsx`）拖进去，按 **Commit changes**。
+2. 点 **Add file → Upload files**，把所有文件（含 `.github` 文件夹）拖进去，按 **Commit changes**。
 3. 进入 **Settings → Pages**，Source 选 **Deploy from a branch**，Branch 选 `main`、文件夹 `/ (root)`，按 **Save**。
 4. 等一两分钟，网址会是：`https://你的用户名.github.io/仓库名/`（本站：<https://yisiangeng.github.io/huang_family_zupu/>）
 
 注意：GitHub Pages 的网页是公开的，有网址的人都能看到。网页已设置不让搜索引擎收录，但这不等于私密。
 
-## 更新族谱
-只需要改 Excel：
-1. 在 `data.xlsx` 的「族谱」表里新增或修改人员（只填 A 到 C 列：编号、姓名、父亲编号）。
-2. 在 GitHub 仓库页面点 **Add file → Upload files**，上传新的 `data.xlsx`（覆盖旧的），按 **Commit changes**。
-3. GitHub 会自动运行「从 Excel 更新族谱」，重新生成 `data.js`，一两分钟后网站更新。
-4. 如果 Excel 有错误（编号重复、父亲编号不存在、有两位始祖等），仓库的 **Actions** 页面会显示红色 ✗ 并列出问题，网站保持旧内容；修正 Excel 再上传即可。
+## 更新族谱（用 Google 表格）
+网站的名单来自一份 Google 表格。**每月 1 号**网站会自动读取一次；想马上更新，到 GitHub 仓库的 **Actions → 更新族谱 → Run workflow** 点一下就行（一两分钟后网站更新）。
 
-也可以在电脑上直接生成：`pip install openpyxl`，然后运行 `python build_data.py`，再预览或上传。
+**平时怎么用**
+- 有新成员：在「新加入成员」表填 姓名 和 父亲编号（C 列会显示父亲姓名，用来核对）。脚本会自动检查，没问题就移到「族谱」表最后，并自动分配编号。有问题的行会留下，D 列写着原因。
+- 要修改或删除已有的人：只有表格的拥有者可以直接改「族谱」表（该表已锁定）。
+- 如果表格有错误（编号重复、父亲编号不存在、有两位始祖等），Actions 页面会显示红色 ✗ 并列出问题，网站保持旧内容，GitHub 也会发邮件通知；修正表格后再点一次 Run workflow。
 
-注意：`data.xlsx` 会和网站一起公开。只有 A 到 C 列会进入网站，但「备注」等其他列在 GitHub 上也是看得到的，不想公开的资料不要写在里面。
+### Google 表格设置（只做一次）
+1. **建表**：把 `data.xlsx` 上传到 Google 云端硬盘，用 Google 表格打开，另存为 Google 表格。这份 Excel 已经有三个工作表：「族谱」（A 到 C 列：编号、姓名、父亲编号，第 1 行是标题）、「新加入成员」（C 列的「父亲姓名」公式已填好）和「说明」（已写好）。
+2. **检查「新加入成员」表**：标题应为 A1 `姓名`、B1 `父亲编号`、C1 `父亲姓名（核对用）`、D1 `处理结果`。C 列的公式是每行一条（第 2 到 300 行），脚本只清空 A、B、D 列的内容，不会删除行，所以公式不会被弄丢。
+3. **「说明」表**：内容来自 `google_sheet/说明.txt`，需要修改说明时，两边一起改。
+4. **脚本**：在表格里点 **扩展程序 → Apps Script**，删掉原有内容，把 `google_sheet/Code.gs` 整段粘贴进去并保存；选择函数 `setup`，点 **运行**，按提示授权（只需一次，授权账号会是之后运行脚本的账号，请用拥有者账号）。
+5. **锁定「族谱」表**：右键「族谱」工作表标签 → **保护工作表**（或 数据 → 保护工作表和范围）→ 权限设为「仅限我」。脚本以拥有者身份运行，仍然可以往里添加新成员。
+6. **分享**：点右上角 **分享**，把要帮忙填写的人加为**编辑者**，「常规权限」保持**受限**。
+7. **发布到网络**：**文件 → 分享 → 发布到网络**，「链接」选 **族谱** 工作表、格式选 **逗号分隔值 (.csv)**，点发布，复制得到的链接。
+8. 把链接粘贴到本仓库的 `sheet_url.txt`（替换说明文字下面的空行），上传保存。GitHub 会立即运行一次，之后每月自动运行。
+
+注意：发布后，知道链接的人能看到「族谱」表（和网站公开的内容一样）。不想公开的资料不要写在「族谱」表里，可以放在不发布的工作表。
+
+没有设置 Google 表格时，仍可以用旧办法：改 `data.xlsx` 并上传到 GitHub，会自动生成 `data.js`。
+
+也可以在电脑上直接生成：`python build_data.py`（读 Excel 需要先 `pip install openpyxl`；也可以 `python build_data.py "CSV链接"`）。
 
 ## 小设置
 在 `app.js` 最上面：

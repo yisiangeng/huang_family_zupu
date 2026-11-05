@@ -1,0 +1,4 @@
+# 把 Google 表格「发布到网络」后得到的 CSV 链接，粘贴在下面这一行（# 开头的行会被忽略）。
+# 链接大概长这样：https://docs.google.com/spreadsheets/d/e/……/pub?gid=……&single=true&output=csv
+# 这里没有链接时，网站改用 data.xlsx 生成。
+https://docs.google.com/spreadsheets/d/e/2PACX-1vRBaXLL0OTdKOPD-S7m31z-BiZUxsJpRUEtbGa3y1_N37ghbkbFT3Xin9exiBsh_sTWibqUxDO7d_Bi/pub?gid=1896682029&single=true&output=csv
